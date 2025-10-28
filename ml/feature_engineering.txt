@@ -1,0 +1,28 @@
+Feature Engineering - LDR Color Sense
+--------------------------------------
+r_norm
+g_norm
+b_norm
+R_G = R / (G + 1e-6)   # avoid division by zero
+R_B = R / (B + 1e-6)
+G_B = G / (B + 1e-6)
+R_W = R / (W + 1e-6)   # if W is reliable
+Saturation = (Max - Min) / (Max + 1e-6)
+Total (or W)
+Colorfulness (optional)
+One-hot dominant color (optional, adds 2–3 cols)
+
+
+======================
+Max = max(R, G, B)
+Min = min(R, G, B)
+R, G, B, W => Raw values
+
+======
+Reflectance = W / (W + R + G + B + 1e-6)
+# or
+Colorfulness = (R + G + B) / (W + 1e-6)
+
+====================
+Columns:
+R_NORM,G_NORM,B_NORM,R_G,R_B,G_B,SATURATION,REFLECTANCE,COLORFULNESSS,IS_RED,IS_GREEN,COLOR_LABEL
