@@ -6,12 +6,15 @@ MLP Classifier
 ===========================
 
 This example illustrates a Multi-Layer Perceptron Model
+
+!!!! Tried a couple of times, this doesn't work
+Seems the dataset works for classification and regression models
 """
 
 import os.path
 
 import emlearn
-import numpy
+import numpy as np
 import pandas
 
 # Key thing is to transform the data into integers that fit the
@@ -22,7 +25,7 @@ from sklearn.model_selection import cross_val_score, StratifiedKFold, train_test
 #from sklearn.metrics import get_scorer
 from sklearn.metrics import accuracy_score
 
-from load_data import load_data, prepare_data
+from load_data import load_fe_data, prepare_data
 
 try:
     # When executed as regular .py script
@@ -34,22 +37,19 @@ except NameError:
 
 def train_model(data: pandas.DataFrame):
 
-    dataset = prepare_data(data, 'color_label')
+    feature_columns = ["r_norm","g_norm","b_norm","r_g","r_b","g_b","saturation","reflectance","colorfulness","is_red","is_green","is_blue"]
+    dataset = prepare_data(data, feature_columns, 'color_label')
 
+    # X_uint8 = np.clip((dataset['data'] * 255), 0, 255).astype(np.uint8)
     X_train, X_test, Y_train, Y_test = train_test_split(dataset['data'], dataset['target'], test_size=0.30, random_state=3)
 
     print("X-Train\n------\n", X_train)
     print("Y-Train\n------\n", Y_train)
 
-    # model = RandomForestClassifier(n_estimators=10, max_depth=max_depth, random_state=1)
     model = MLPClassifier(hidden_layer_sizes=(10,10,), max_iter=1000, random_state=1)
 
-    # sanity check performance
-    # cv = StratifiedKFold(5, random_state=None, shuffle=False)
-    # scores = cross_val_score(model, X_train, Y_train, cv=cv, scoring='accuracy')
-    # assert numpy.mean(scores) >= 0.70, (numpy.mean(scores), scores)
-
-    model = model.fit(X_train, Y_train)
+    with np.errstate(under='ignore'):
+        model = model.fit(X_train, Y_train)
 
     #Y_pred = model.predict_proba(X_test)[:, 1]
     Y_pred = model.predict(X_test)
@@ -67,11 +67,11 @@ def train_model(data: pandas.DataFrame):
 
 def convert_to_C_code(model):
     # Do conversion with specified leaf_bits
-    c_model = emlearn.convert(model, method='loadable', dtype='float')
+    c_model = emlearn.convert(model, method='inline', dtype='uint8')
     c_model.save(file='ml/ColorSenseModelMLP_EML.h', name="color_sense", include_proba=True)
 
 
 if __name__ == "__main__":
-    color_data = load_data("color_data3")
+    color_data = load_fe_data("fe_data")
     model, X_test, Y_test = train_model(color_data)
     convert_to_C_code(model)

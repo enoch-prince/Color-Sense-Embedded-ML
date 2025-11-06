@@ -26,7 +26,8 @@ if __name__ == '__main__':
     input_dir: str = args.input
 
     df = load_data(input_dir)
-    dataset = prepare_data(df, "color_label")
+    feature_columns = ['White', 'Red', 'Green', 'Blue', 'Total']
+    dataset = prepare_data(df, feature_columns, "color_label")
 
 
     #Rescale and convert to integers (quantize)

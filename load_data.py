@@ -21,17 +21,24 @@ def load_data(input_dir: str) -> pandas.DataFrame:
     
     return combined_df
 
-def prepare_data(data: pandas.DataFrame, label_column = 'label', as_frame=False):
+def load_fe_data(input_dir: str) -> pandas.DataFrame:
+    combined_df: pandas.DataFrame
+
+    if "combined_fe_data.csv" in os.listdir("data"):
+        print("Files already combined. Loading 'combined_fe_data.csv' file instead...")
+        combined_df = pandas.read_csv("data/combined_fe_data.csv")
+    else:
+        dfs = [pandas.read_csv(os.path.join(input_dir, filename)) for filename in os.listdir(input_dir)]
+        combined_df = pandas.concat(dfs, ignore_index=True)
+        save_data("data", "combined_fe_data.csv", combined_df)
+    
+    return combined_df
+
+def prepare_data(data: pandas.DataFrame, feature_columns: list[str], label_column = 'label', as_frame=False):
     data.reset_index(drop=True, inplace=True)
-    # feature_columns = list(set(data.columns) - set([label_column]))
-    feature_columns = ['White', 'Red', 'Green', 'Blue', 'Total']
-    # print(feature_columns)
+    # feature_columns = ['White', 'Red', 'Green', 'Blue', 'Total']
     X = data[feature_columns]
     Y = data[label_column]
-
-    # print(X[:5])
-    # print("\n")
-    # print(Y[:5])
 
     return {
         "DESCR": "Color Data from a cheap LDR-based sensor",

@@ -234,9 +234,6 @@ args = parser.parse_args()
 input_dir: str = args.input
 out_dir: str = args.out
 
-# Serial receive buffer
-rx_buf = b''
-
 # Make output directory
 try:
     os.makedirs(out_dir)
