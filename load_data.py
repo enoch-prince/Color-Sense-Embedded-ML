@@ -36,7 +36,6 @@ def load_fe_data(input_dir: str) -> pandas.DataFrame:
 
 def prepare_data(data: pandas.DataFrame, feature_columns: list[str], label_column = 'label', as_frame=False):
     data.reset_index(drop=True, inplace=True)
-    # feature_columns = ['White', 'Red', 'Green', 'Blue', 'Total']
     X = data[feature_columns]
     Y = data[label_column]
 

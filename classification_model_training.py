@@ -25,76 +25,76 @@ LABEL_MAPPING = {
 }
 # ============================
 
-def load_and_engineer_data(data_dir):
-    all_data = []
+# def load_and_engineer_data(data_dir):
+#     all_data = []
     
-    for fname in os.listdir(data_dir):
-        if not fname.lower().endswith('.csv'):
-            continue
+#     for fname in os.listdir(data_dir):
+#         if not fname.lower().endswith('.csv'):
+#             continue
         
-        # Infer label from filename (e.g., "black.2b3eae45a65e.csv" → "black")
-        base = fname.split('.')[0].lower()
-        label = LABEL_MAPPING.get(base, base)
+#         # Infer label from filename (e.g., "black.2b3eae45a65e.csv" → "black")
+#         base = fname.split('.')[0].lower()
+#         label = LABEL_MAPPING.get(base, base)
         
-        df = pd.read_csv(os.path.join(data_dir, fname))
-        df['color_label'] = label
-        all_data.append(df)
+#         df = pd.read_csv(os.path.join(data_dir, fname))
+#         df['color_label'] = label
+#         all_data.append(df)
     
-    if not all_data:
-        raise ValueError(f"No CSV files found in {data_dir}")
+#     if not all_data:
+#         raise ValueError(f"No CSV files found in {data_dir}")
     
-    return pd.concat(all_data, ignore_index=True)
+#     return pd.concat(all_data, ignore_index=True)
 
-def engineer_features(df):
-    W = df['White'].astype(float)
-    R = df['Red'].astype(float)
-    G = df['Green'].astype(float)
-    B = df['Blue'].astype(float)
-    Total = df['Total'].astype(float)
-    eps = 1e-6
+# def engineer_features(df):
+#     W = df['White'].astype(float)
+#     R = df['Red'].astype(float)
+#     G = df['Green'].astype(float)
+#     B = df['Blue'].astype(float)
+#     Total = df['Total'].astype(float)
+#     eps = 1e-6
 
-    # Embedded-style normalization (R8, G8, B8)
-    denom = np.where(Total == 0, eps, Total)
-    R8 = np.clip(255 - (255 * (W - R)) / denom, 0, 255).astype(float)
-    G8 = np.clip(255 - (255 * (W - G)) / denom, 0, 255).astype(float)
-    B8 = np.clip(255 - (255 * (W - B)) / denom, 0, 255).astype(float)
+#     # Embedded-style normalization (R8, G8, B8)
+#     denom = np.where(Total == 0, eps, Total)
+#     R8 = np.clip(255 - (255 * (W - R)) / denom, 0, 255).astype(float)
+#     G8 = np.clip(255 - (255 * (W - G)) / denom, 0, 255).astype(float)
+#     B8 = np.clip(255 - (255 * (W - B)) / denom, 0, 255).astype(float)
 
-    total_rgb = R8 + G8 + B8
-    r_norm = np.where(total_rgb > 0, R8 / total_rgb, 0.0)
-    g_norm = np.where(total_rgb > 0, G8 / total_rgb, 0.0)
-    b_norm = np.where(total_rgb > 0, B8 / total_rgb, 0.0)
+#     total_rgb = R8 + G8 + B8
+#     r_norm = np.where(total_rgb > 0, R8 / total_rgb, 0.0)
+#     g_norm = np.where(total_rgb > 0, G8 / total_rgb, 0.0)
+#     b_norm = np.where(total_rgb > 0, B8 / total_rgb, 0.0)
 
-    r_g = R8 / (G8 + eps)
-    r_b = R8 / (B8 + eps)
-    g_b = G8 / (B8 + eps)
+#     r_g = R8 / (G8 + eps)
+#     r_b = R8 / (B8 + eps)
+#     g_b = G8 / (B8 + eps)
 
-    rgb_max = np.maximum(np.maximum(R8, G8), B8)
-    rgb_min = np.minimum(np.minimum(R8, G8), B8)
-    saturation = np.where(rgb_max > 0, (rgb_max - rgb_min) / (rgb_max + eps), 0.0)
+#     rgb_max = np.maximum(np.maximum(R8, G8), B8)
+#     rgb_min = np.minimum(np.minimum(R8, G8), B8)
+#     saturation = np.where(rgb_max > 0, (rgb_max - rgb_min) / (rgb_max + eps), 0.0)
 
-    reflectance = W / (W + total_rgb + eps)
-    colorfulness = total_rgb / (W + eps)
+#     reflectance = W / (W + total_rgb + eps)
+#     colorfulness = total_rgb / (W + eps)
 
-    is_red = ((R8 >= G8) & (R8 >= B8)).astype(int)
-    is_green = ((G8 > R8) & (G8 >= B8)).astype(int)
-    is_blue = ((B8 > R8) & (B8 > G8)).astype(int)
+#     is_red = ((R8 >= G8) & (R8 >= B8)).astype(int)
+#     is_green = ((G8 > R8) & (G8 >= B8)).astype(int)
+#     is_blue = ((B8 > R8) & (B8 > G8)).astype(int)
 
-    features = pd.DataFrame({
-        'r_norm': r_norm,
-        'g_norm': g_norm,
-        'b_norm': b_norm,
-        'r_g': r_g,
-        'r_b': r_b,
-        'g_b': g_b,
-        'saturation': saturation,
-        'reflectance': reflectance,
-        'colorfulness': colorfulness,
-        'is_red': is_red,
-        'is_green': is_green,
-        'is_blue': is_blue,
-    })
+#     features = pd.DataFrame({
+#         'r_norm': r_norm,
+#         'g_norm': g_norm,
+#         'b_norm': b_norm,
+#         'r_g': r_g,
+#         'r_b': r_b,
+#         'g_b': g_b,
+#         'saturation': saturation,
+#         'reflectance': reflectance,
+#         'colorfulness': colorfulness,
+#         'is_red': is_red,
+#         'is_green': is_green,
+#         'is_blue': is_blue,
+#     })
 
-    return features, df['color_label']
+#     return features, df['color_label']
 
 # ============================
 # MAIN PIPELINE
@@ -117,7 +117,7 @@ if __name__ == "__main__":
     # Train model (Random Forest — compact & accurate for tabular)
     print("🧠 Training Random Forest...")
     clf = RandomForestClassifier(
-        n_estimators=20,      # small forest → small code
+        n_estimators=15,      # small forest → small code
         max_depth=10,         # prevent overfitting, reduce size
         random_state=42
     )
@@ -132,7 +132,7 @@ if __name__ == "__main__":
 
     # Export to C using emlearn
     print("\n📦 Converting to C...")
-    c_code = emlearn.convert(clf)
+    c_code = emlearn.convert(clf, dtype='float')
     c_code_str = c_code.save(file="tmp/rf_clf.h", name="ColorSenseFEModelRFC_EML")
 
     # Wrap in header guard & include
